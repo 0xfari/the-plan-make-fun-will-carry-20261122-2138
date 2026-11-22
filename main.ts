@@ -16,7 +16,7 @@
 //     first — and an agent builds a page in 2 hours, a human charges
 //     hundreds and takes days.
 
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // The plan, kept under the 280-code-point gate with room to spare.
@@ -44,6 +44,12 @@ function main(): void {
     rmSync(join(outDir, name), { recursive: true, force: true });
   }
   writeFileSync(join(outDir, "entry.txt"), PLAN, "utf8");
+  // Read back and confirm the exact bytes landed: the gate scores the
+  // file byte for byte, so a silent short write must fail loudly here.
+  const written = readFileSync(join(outDir, "entry.txt"), "utf8");
+  if (written !== PLAN) {
+    throw new Error("entry.txt round-trip mismatch");
+  }
   console.log(`wrote entry.txt (${points} code points) to ${outDir}`);
 }
 
